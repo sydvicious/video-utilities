@@ -60,8 +60,14 @@ parser.add_argument('--overwrite', '-w', action='store_true',
                     flag. This option will overwrite the new file. Note that it destroys the destination
                     file immediately.
                     ''')
+parser.add_argument('--tmp-dir', '--tmp', '-t', nargs=1,
+                    help=
+                    '''
+                    Directory where the converted file will be created. After the conversion is done, the file will be
+                    moved to the destination directory.
+                    ''')
 args = parser.parse_args()
 
-converter = h265Converer.H265Converter(args.files, args.overwrite, args.force, args.dry_run, args.destination)
+converter = h265Converer.H265Converter(args.files, args.overwrite, args.force, args.dry_run, args.destination, args.tmp_dir)
 converter.convert_videos()
 

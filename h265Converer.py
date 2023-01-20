@@ -1,8 +1,10 @@
-
 import subprocess
 import sys
+import tempfile
 
+from hashlib import md5
 from pathlib import Path
+from time import localtime
 
 
 class H265Converter:
@@ -14,8 +16,9 @@ class H265Converter:
     dest = None
     dest_is_directory = True
     dest_path = None
+    tmp_dir = None
 
-    def __init__(self, files, overwrite=False, force=False, dry_run=False, dest=None):
+    def __init__(self, files, overwrite=False, force=False, dry_run=False, dest=None, tmp_dir=None):
         if overwrite:
             self.overwrite_flag = '-y'
         else:
@@ -27,7 +30,10 @@ class H265Converter:
         self.dry_run = dry_run
         self.files = files
         self.dest = dest
-        if dest:
+        if tmp_dir is not None:
+            self.tmp_dir = Path(tmp_dir[0])
+            self.tmp_dir.mkdir(parents=True, exist_ok=True)
+        if dest is not None:
             self.dest_path = Path(dest[0])
             if self.dest_path.exists():
                 self.dest_is_directory = self.dest_path.is_dir()
@@ -42,19 +48,38 @@ class H265Converter:
         self.eprint(*args, **kwargs)
         sys.exit(1)
 
-    def destination(self, video, suffix='.h265.mp4'):
+    def destination_dir(self, video, suffix='.h265.mp4'):
         if self.dest is None:
-            return self.new_video_name(video, suffix)
+            return video.parent
         if self.dest_is_directory:
             if not self.dest_path.exists():
                 print("Creating " + dest_path.os_posix())
                 if not self.dry_run:
-                    self.dest_path.mkdir(parents=True,exist_ok=True)
-            return self.new_video_name(self.dest_path.joinpath(video.name()), suffix)
+                    self.dest_path.mkdir(parents=True, exist_ok=True)
+            return self.dest_path
         print(self.dest_path.parent.as_posix())
         if self.dest_path.parent.as_posix() == '.':
-            return self.new_video_name(video.parent.joinpath(self.dest_path), suffix)
-        return self.new_video_name(self.dest_path.parent.joinpath(video.name), suffix)
+            return video.parent
+        return self.dest_path
+
+    def intermediate_name(self, suffix='.h265.mp4'):
+        if self.tmp_dir:
+            prefix = md5(str(localtime()).encode('utf-8')).hexdigest()
+            tmp_name = f"{prefix}{suffix}"
+            return tmp_name
+        return None
+
+    def converted_file(self, video, suffix='.h264.mp4'):
+        converted_directory = None
+        converted_file_name = None
+        if self.tmp_dir:
+            converted_directory = self.tmp_dir
+            converted_file_name = self.intermediate_name()
+        else:
+            converted_directory = self.destination_dir(video, suffix)
+            converted_file_name = self.new_video_name(video, suffix)
+
+        return converted_directory.joinpath(converted_file_name)
 
     def new_video_name(self, video, suffix='.h265.mp4'):
         """
@@ -77,15 +102,21 @@ class H265Converter:
             H265Converter.error_output('Source ' + src + ' does not exist.')
             return
 
-        new_path = self.destination(path)
+        new_path = self.converted_file(path)
         print('Destination: ' + new_path.as_posix())
 
-        command = ['ffmpeg', self.overwrite_flag, '-i', path, '-c:v', 'libx265', '-x265-params', 'lossless=1', new_path]
+        command = ['ffmpeg', self.overwrite_flag, '-i', path, '-c:v', 'libx265', new_path]
         print(command)
         if not self.dry_run:
             output = subprocess.run(command)
-            if output.returncode != 0:
+            if output.returncode == 0:
+                if self.tmp_dir:
+                    final_path = self.destination_dir(path, '.h265.mp4').parent.joinpath(self.new_video_name(path, '.h265.mp4'))
+                    print("Moving " + new_path.as_posix() + " to " + final_path.as_posix() + ".")
+                    new_path.rename(final_path)
+            else:
                 self.error_output('Problem converting ' + src + ' to ' + new_path.as_posix())
+                new_path.unlink(missing_ok=True)
 
     def convert_videos(self):
         for file in self.files:
