@@ -17,8 +17,13 @@ class H265Converter:
     dest_is_directory = True
     dest_path = None
     tmp_dir = None
+    preserve_source = False
+    suffix = None
 
-    def __init__(self, files, overwrite=False, force=False, dry_run=False, dest=None, tmp_dir=None):
+    def __init__(self, files, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, dest=None, tmp_dir=None,
+                 preserve_source=False):
+        self.files = files
+        self.suffix = suffix
         if overwrite:
             self.overwrite_flag = '-y'
         else:
@@ -28,9 +33,8 @@ class H265Converter:
         else:
             self.error_output = self.error_stop
         self.dry_run = dry_run
-        self.files = files
         self.dest = dest
-        if tmp_dir is not None:
+        if tmp_dir:
             self.tmp_dir = Path(tmp_dir[0])
             self.tmp_dir.mkdir(parents=True, exist_ok=True)
         if dest is not None:
@@ -40,6 +44,7 @@ class H265Converter:
             else:
                 last = self.dest[-1]
                 self.dest_is_directory = last == '/'
+        self.preserve_source = preserve_source
 
     def eprint(self, *args, **kwargs):
         print(*args, file=sys.stderr, **kwargs)
@@ -48,7 +53,7 @@ class H265Converter:
         self.eprint(*args, **kwargs)
         sys.exit(1)
 
-    def destination_dir(self, video, suffix='.h265.mp4'):
+    def destination_dir(self, video):
         if self.dest is None:
             return video.parent
         if self.dest_is_directory:
@@ -62,32 +67,30 @@ class H265Converter:
             return video.parent
         return self.dest_path
 
-    def intermediate_name(self, suffix='.h265.mp4'):
+    def intermediate_name(self):
         if self.tmp_dir:
             prefix = md5(str(localtime()).encode('utf-8')).hexdigest()
-            tmp_name = f"{prefix}{suffix}"
+            tmp_name = f".{prefix}{self.suffix}"
             return tmp_name
         return None
 
-    def converted_file(self, video, suffix='.h264.mp4'):
-        converted_directory = None
-        converted_file_name = None
+    def final_path(self, video):
+        return self.destination_dir(video).joinpath(self.new_video_name(video))
+
+    def converted_file(self, video):
         if self.tmp_dir:
             converted_directory = self.tmp_dir
             converted_file_name = self.intermediate_name()
+            return converted_directory.joinpath(converted_file_name)
         else:
-            converted_directory = self.destination_dir(video, suffix)
-            converted_file_name = self.new_video_name(video, suffix)
+            return self.final_path(video)
 
-        return converted_directory.joinpath(converted_file_name)
-
-    def new_video_name(self, video, suffix='.h265.mp4'):
+    def new_video_name(self, video):
         """
         :param video: a Path object to the existing video file
-        :param suffix: the new suffix of the file.
         :return: Returns a path object with the proposed name of the file after conversion.
         """
-        return video.with_suffix(suffix)
+        return video.with_suffix(self.suffix)
 
     def convert_video(self, src, dest=None):
         """
@@ -103,7 +106,13 @@ class H265Converter:
             return
 
         new_path = self.converted_file(path)
-        print('Destination: ' + new_path.as_posix())
+        final_path = self.final_path(path)
+        if self.tmp_dir:
+            print('Temp destination: ' + new_path.as_posix())
+        print('Destination: ' + final_path.as_posix())
+        if self.overwrite_flag == '-n' and final_path.exists():
+            self.error_output(final_path.as_posix() + ' exists')
+            return
 
         command = ['ffmpeg', self.overwrite_flag, '-i', path, '-c:v', 'libx265', new_path]
         print(command)
@@ -111,12 +120,15 @@ class H265Converter:
             output = subprocess.run(command)
             if output.returncode == 0:
                 if self.tmp_dir:
-                    final_path = self.destination_dir(path, '.h265.mp4').parent.joinpath(self.new_video_name(path, '.h265.mp4'))
                     print("Moving " + new_path.as_posix() + " to " + final_path.as_posix() + ".")
                     new_path.rename(final_path)
+                if not self.preserve_source:
+                    path.unlink()
             else:
                 self.error_output('Problem converting ' + src + ' to ' + new_path.as_posix())
-                new_path.unlink(missing_ok=True)
+                if not self.tmp_dir:
+                    final_path.unlink(missing_ok=True)
+                return
 
     def convert_videos(self):
         for file in self.files:

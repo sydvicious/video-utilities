@@ -60,6 +60,16 @@ parser.add_argument('--overwrite', '-w', action='store_true',
                     flag. This option will overwrite the new file. Note that it destroys the destination
                     file immediately.
                     ''')
+parser.add_argument('--preserve-source', '-p', action='store_true',
+                    help=
+                    '''
+                    Don't delete source files after conversion.
+                    ''')
+parser.add_argument('--suffix', '-s', nargs=1,default='.h265.mp4',
+                    help=
+                    '''
+                    Use this extension for the final file.
+                    ''')
 parser.add_argument('--tmp-dir', '--tmp', '-t', nargs=1,
                     help=
                     '''
@@ -68,6 +78,7 @@ parser.add_argument('--tmp-dir', '--tmp', '-t', nargs=1,
                     ''')
 args = parser.parse_args()
 
-converter = h265Converer.H265Converter(args.files, args.overwrite, args.force, args.dry_run, args.destination, args.tmp_dir)
+converter = h265Converer.H265Converter(args.files, args.suffix, args.overwrite, args.force, args.dry_run, args.destination,
+                                       args.tmp_dir, args.preserve_source)
 converter.convert_videos()
 
