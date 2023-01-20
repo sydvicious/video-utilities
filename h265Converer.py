@@ -101,8 +101,15 @@ class H265Converter:
         """
         path = Path(src)
 
+        suffixes = ''
+        for suffix in path.suffixes:
+            suffixes = suffixes + suffix
+        if suffixes == self.suffix:
+            self.error_output('Skipping ' + src + '; already converted')
+            return
+
         if not path.exists():
-            H265Converter.error_output('Source ' + src + ' does not exist.')
+            self.error_output('Source ' + src + ' does not exist.')
             return
 
         new_path = self.converted_file(path)
