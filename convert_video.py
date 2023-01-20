@@ -14,7 +14,7 @@ parser.add_argument('files', type=str, nargs='+',
                     '''
                     Files to convert. 
                     ''')
-parser.add_argument('--continue', '-f', action='store_false', dest='force',
+parser.add_argument('--continue', '-f', action='store_true', dest='force',
                     help=
                     '''
                     Don't stop processing if a file gives an error; try the next file in the list.
