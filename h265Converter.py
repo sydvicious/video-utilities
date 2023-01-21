@@ -118,7 +118,7 @@ class H265Converter:
             output = subprocess.run(command)
             if output.returncode == 0:
                 if self.tmp_dir:
-                    final_path.parent.mkdir(parents=True, exists_ok=True)
+                    final_path.parent.mkdir(parents=True, exist_ok=True)
                     print("Moving " + new_path.as_posix() + " to " + final_path.as_posix() + ".")
                     new_path.rename(final_path)
                 if not self.preserve_source:
