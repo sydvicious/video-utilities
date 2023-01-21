@@ -76,7 +76,16 @@ class TreeTraverser:
             elif self.stop_time < self.start_time and self.stop_time < now < self.start_time:
                 return
 
-            time.sleep(36000)
+            new_hour = now.hour
+            new_minute = now.minute + 10
+            if new_minute > 60:
+                new_minute -= 60
+                new_hour += 1
+                if new_hour == 24:
+                    new_hour = 0
+            new_time = datetime.time(new_hour, new_minute, now.second)
+            print("Waiting; will check again at " + str(new_time))
+            time.sleep(3600)
 
     def traverse(self, source, dest=None):
         root = Path(source)
