@@ -84,8 +84,8 @@ class TreeTraverser:
                 if new_hour == 24:
                     new_hour = 0
             new_time = datetime.time(new_hour, new_minute, now.second)
-            print("Waiting; will check again at " + str(new_time))
-            time.sleep(360)
+            print("[" + str(now) + "] Waiting; will check again at " + str(new_time))
+            time.sleep(600)
 
     def traverse(self, source, dest=None):
         root = Path(source)
