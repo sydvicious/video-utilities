@@ -86,13 +86,6 @@ class H265Converter:
         if dest is not None:
             dest_path = Path(dest)
 
-        suffixes = ''
-        for suffix in path.suffixes:
-            suffixes = suffixes + suffix
-        if suffixes == self.suffix:
-            self.error_output('Skipping ' + src + '; already converted')
-            return
-
         if not path.exists():
             self.error_output('Source ' + src + ' does not exist.')
             return

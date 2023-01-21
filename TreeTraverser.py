@@ -44,13 +44,14 @@ class TreeTraverser:
             self.stop_time = datetime.datetime.strptime(stop_time, '%H:%M:%S').time()
 
     def should_convert(self, path):
-        if not (path.suffix in self.video_suffixes):
+        path_suffix = path.suffix
+        if not (path_suffix in self.video_suffixes):
             return False
-        suffixes = ''
-        for suffix in path.suffixes:
-            suffixes = suffixes + suffix
-        if suffixes == self.suffix:
-            return False
+        suffixes = ""
+        for suffix in reversed(path.suffixes):
+            suffixes = suffix + suffixes
+            if suffixes == self.suffix:
+                return False
         return True
 
     def wait_for_window(self):
