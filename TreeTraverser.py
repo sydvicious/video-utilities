@@ -79,7 +79,7 @@ class TreeTraverser:
 
             new_hour = now.hour
             new_minute = now.minute + 10
-            if new_minute > 60:
+            if new_minute >= 60:
                 new_minute -= 60
                 new_hour += 1
                 if new_hour == 24:
