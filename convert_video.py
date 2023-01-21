@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import h265Converer
+import h265Converter
 import argparse
-
-from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Convert video files to libx265 mp4 files using ffmpeg",
                                  prog="covert_video",
@@ -19,7 +17,7 @@ parser.add_argument('--continue', '-f', action='store_true', dest='force',
                     '''
                     Don't stop processing if a file gives an error; try the next file in the list.
                     ''')
-parser.add_argument('--destination', '-o', nargs=1,
+parser.add_argument('--destination', '-o',
                     help=
                     '''
                     The destination file or directory that the result will be written to. This has similar semantics
@@ -70,7 +68,7 @@ parser.add_argument('--suffix', '-s', nargs=1,default='.h265.mp4',
                     '''
                     Use this extension for the final file.
                     ''')
-parser.add_argument('--tmp-dir', '--tmp', '-t', nargs=1,
+parser.add_argument('--tmp-dir', '--tmp', '-t',
                     help=
                     '''
                     Directory where the converted file will be created. After the conversion is done, the file will be
@@ -78,7 +76,7 @@ parser.add_argument('--tmp-dir', '--tmp', '-t', nargs=1,
                     ''')
 args = parser.parse_args()
 
-converter = h265Converer.H265Converter(args.files, args.suffix, args.overwrite, args.force, args.dry_run, args.destination,
+converter = h265Converter.H265Converter(args.suffix, args.overwrite, args.force, args.dry_run,
                                        args.tmp_dir, args.preserve_source)
-converter.convert_videos()
+converter.convert_videos(args.files, args.destination)
 
