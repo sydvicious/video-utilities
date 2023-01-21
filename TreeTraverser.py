@@ -14,7 +14,7 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 class TreeTraverser:
 
     video_suffixes=['.mp4', '.mkv', '.mov', '.webm', '.avi', '.ts', '.srt', '.m3u', '.m4v', '.MOV',
-                    '.sub', '.MP4', '.mpg']
+                    '.MP4', '.mpg']
 
     suffix = ''
     overwrite = False
