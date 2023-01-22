@@ -92,6 +92,8 @@ class TreeTraverser:
 
     def traverse(self, source, dest=None):
         root = Path(source)
+        count = 0
+        bytes = 0
         while True:
             for top, dirs, files in os.walk(root):
                 top_path = Path(top)
@@ -107,7 +109,21 @@ class TreeTraverser:
                     if video not in self.file_set:
                         print(video + " -> " + final_dest)
                         self.file_set.add(video)
-                        self.file_queue.put((path.stat().st_size, video, final_dest))
+                        size = path.stat().st_size
+                        self.file_queue.put((size, video, final_dest))
+                        count += 1
+                        bytes += size
+            print(str(count)+ ' files')
+            if bytes > 1024 * 1024 * 1024 * 1024:
+                print (str(bytes / (1024 * 1024 * 1024 * 1024)) + ' Tb')
+            elif bytes > 1024 * 1024 * 1024:
+                print (str(bytes / (1024 * 1024 * 1024)) + ' Gb')
+            elif bytes > 1024 * 1024:
+                print (str(bytes / (1024 * 1024)) + ' Mb')
+            elif bytes > 1024:
+                print (str(bytes / 1024) + ' Kb')
+            else:
+                print (str(bytes) + ' bytes')
 
             while not self.file_queue.empty():
                 if not self.wait_for_window():
