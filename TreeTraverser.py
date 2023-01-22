@@ -113,17 +113,24 @@ class TreeTraverser:
                         self.file_queue.put((size, video, final_dest))
                         count += 1
                         bytes += size
-            print(str(count)+ ' files')
+
             if bytes > 1024 * 1024 * 1024 * 1024:
-                print (str(bytes / (1024 * 1024 * 1024 * 1024)) + ' Tb')
+                num = bytes / (1024 * 1024 * 1024 * 1024)
+                unit = 'Tb'
             elif bytes > 1024 * 1024 * 1024:
-                print (str(bytes / (1024 * 1024 * 1024)) + ' Gb')
+                num = bytes / (1024 * 1024 * 1024)
+                unit = 'Gb'
             elif bytes > 1024 * 1024:
-                print (str(bytes / (1024 * 1024)) + ' Mb')
+                num = bytes / (1024 * 1024)
+                unit = 'Mb'
             elif bytes > 1024:
-                print (str(bytes / 1024) + ' Kb')
+                num = bytes / 1024
+                unit = 'Kb'
             else:
-                print (str(bytes) + ' bytes')
+                num = bytes
+                unit = 'bytes'
+
+            print (f'{count} files; {num:.3f} {unit}')
 
             while not self.file_queue.empty():
                 if not self.wait_for_window():
