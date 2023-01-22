@@ -87,7 +87,7 @@ class TreeTraverser:
                     new_hour = 0
             new_time = datetime.time(new_hour, new_minute, now.second)
             print("[" + str(now) + "] Waiting; will check again at " + str(new_time))
-            time.sleep(6)
+            time.sleep(600)
             return False
 
     def traverse(self, source, dest=None):
