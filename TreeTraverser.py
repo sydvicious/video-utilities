@@ -23,6 +23,7 @@ class TreeTraverser:
     tmp_dir = None
     preserve_source = False
     file_queue = queue.PriorityQueue()
+    file_set = set()
     converter = None
     start_time = None
     stop_time = None
@@ -56,26 +57,26 @@ class TreeTraverser:
 
     def wait_for_window(self):
         if self.start_time is None and self.stop_time is None:
-            return
+            return True
 
         while True:
             now = datetime.datetime.now().time()
             # Check if current time is later than start_time
             if self.start_time is not None and self.stop_time is None:
                 if midnight_upper > now > self.start_time:
-                    return
+                    return True
 
             # Check if current time is earlier than stop_time
             elif self.start_time is None and self.stop_time is not None:
                 if midnight_lower < now < self.stop_time:
-                    return
+                    return True
 
             # Check to see if current_time is between start_time and stop_time
             elif self.start_time < self.stop_time and self.start_time < now < self.stop_time:
-                return
+                return True
 
             elif self.stop_time < self.start_time and self.stop_time < now < self.start_time:
-                return
+                return True
 
             new_hour = now.hour
             new_minute = now.minute + 10
@@ -86,28 +87,34 @@ class TreeTraverser:
                     new_hour = 0
             new_time = datetime.time(new_hour, new_minute, now.second)
             print("[" + str(now) + "] Waiting; will check again at " + str(new_time))
-            time.sleep(600)
+            time.sleep(6)
+            return False
 
     def traverse(self, source, dest=None):
         root = Path(source)
-        for top, dirs, files in os.walk(root):
-            top_path = Path(top)
-            if top_path.name == 'tmp':
-                continue
-            for file in files:
-                video = os.path.join(top, file)
-                path = Path(video)
-                if not self.should_convert(path):
+        while True:
+            for top, dirs, files in os.walk(root):
+                top_path = Path(top)
+                if top_path.name == 'tmp':
                     continue
-                print(video)
-                subdir = Path(file).parent.as_posix()
-                final_dest = os.path.join(top, subdir)
-                self.file_queue.put((path.stat().st_size, video, final_dest))
+                for file in files:
+                    video = os.path.join(top, file)
+                    path = Path(video)
+                    if not self.should_convert(path):
+                        continue
+                    subdir = Path(file).parent.as_posix()
+                    final_dest = os.path.join(top, subdir)
+                    if video not in self.file_set:
+                        print(video + " -> " + final_dest)
+                        self.file_set.add(video)
+                        self.file_queue.put((path.stat().st_size, video, final_dest))
 
-        while not self.file_queue.empty():
-            self.wait_for_window()
-            _, video, dest = self.file_queue.get()
-            self.converter.convert_video(video, dest)
+            while not self.file_queue.empty():
+                if not self.wait_for_window():
+                    break
+                _, video, dest = self.file_queue.get()
+                self.file_set.remove(video)
+                self.converter.convert_video(video, dest)
 
         print ("Done.")
 

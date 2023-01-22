@@ -48,7 +48,7 @@ parser.add_argument('--start-time', '-$', type=str,
                     will span midnight, and a job will start after the end_time on one
                     day, and won't start after start_time on the next day.
                     ''')
-parser.add_argument('--stop-time', '-^', type=str,
+parser.add_argument('--stop-time', '--end-time', '-^', type=str,
                     help=
                     '''
                     Only start encoding before this time. If no start_time is specified,
