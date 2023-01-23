@@ -91,10 +91,28 @@ class TreeTraverser:
             time.sleep(600)
             return False
 
+    def size_string(self, size):
+        if size > 1024 * 1024 * 1024 * 1024:
+            num = size / (1024 * 1024 * 1024 * 1024)
+            unit = 'Tb'
+        elif size > 1024 * 1024 * 1024:
+            num = size / (1024 * 1024 * 1024)
+            unit = 'Gb'
+        elif size > 1024 * 1024:
+            num = size / (1024 * 1024)
+            unit = 'Mb'
+        elif size > 1024:
+            num = size / 1024
+            unit = 'Kb'
+        else:
+            num = size
+            unit = 'bytes'
+        return f'{num:.3f} {unit}'
+
     def traverse(self, source, dest=None):
         root = Path(source)
         count = 0
-        bytes = 0
+        space = 0
         while True:
             for top, dirs, files in os.walk(root):
                 top_path = Path(top)
@@ -108,30 +126,16 @@ class TreeTraverser:
                     subdir = Path(file).parent.as_posix()
                     final_dest = os.path.join(top, subdir)
                     if video not in self.file_set:
-                        print(video + " -> " + final_dest)
-                        self.file_set.add(video)
                         size = path.stat().st_size
+                        print(f'{video} ({self.size_string(size)}) -> {final_dest}')
+                        self.file_set.add(video)
                         self.file_queue.put((size, video, final_dest))
                         count += 1
-                        bytes += size
+                        space += size
 
-            if bytes > 1024 * 1024 * 1024 * 1024:
-                num = bytes / (1024 * 1024 * 1024 * 1024)
-                unit = 'Tb'
-            elif bytes > 1024 * 1024 * 1024:
-                num = bytes / (1024 * 1024 * 1024)
-                unit = 'Gb'
-            elif bytes > 1024 * 1024:
-                num = bytes / (1024 * 1024)
-                unit = 'Mb'
-            elif bytes > 1024:
-                num = bytes / 1024
-                unit = 'Kb'
-            else:
-                num = bytes
-                unit = 'bytes'
+            size_tag = self.size_string(space)
 
-            print (f'{count} files; {num:.3f} {unit}')
+            print(f'{count} files; {size_tag}')
 
             while not self.file_queue.empty():
                 if not self.wait_for_window():
