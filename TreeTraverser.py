@@ -64,12 +64,12 @@ class TreeTraverser:
             now = datetime.datetime.now().time()
             # Check if current time is later than start_time
             if self.start_time is not None and self.stop_time is None:
-                if midnight_upper > now > self.start_time:
+                if now > self.start_time:
                     return True
 
             # Check if current time is earlier than stop_time
             elif self.start_time is None and self.stop_time is not None:
-                if midnight_lower < now < self.stop_time:
+                if now < self.stop_time:
                     return True
 
             # Check to see if current_time is between start_time and stop_time
