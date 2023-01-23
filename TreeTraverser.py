@@ -88,6 +88,8 @@ class TreeTraverser:
                     new_hour = 0
             new_time = datetime.time(new_hour, new_minute, now.second)
             print("[" + str(now) + "] Waiting; will check again at " + str(new_time))
+            space, name, _ = self.file_queue.queue[0]
+            print(f'Next entry: {name} ({self.size_string(space)})')
             time.sleep(600)
             return False
 
