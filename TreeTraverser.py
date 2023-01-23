@@ -13,8 +13,9 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 
 class TreeTraverser:
 
-    video_suffixes=['.mp4', '.mkv', '.mov', '.webm', '.avi', '.ts', '.srt', '.m3u', '.m4v', '.MOV',
+    video_suffixes = ['.mp4', '.mkv', '.mov', '.webm', '.avi', '.ts', '.srt', '.m3u', '.m4v', '.MOV',
                     '.MP4', '.mpg']
+    directories_to_skip = ['tmp', '.grab']
 
     suffix = ''
     overwrite = False
@@ -97,7 +98,7 @@ class TreeTraverser:
         while True:
             for top, dirs, files in os.walk(root):
                 top_path = Path(top)
-                if top_path.name == 'tmp':
+                if top_path.name in self.directories_to_skip:
                     continue
                 for file in files:
                     video = os.path.join(top, file)
