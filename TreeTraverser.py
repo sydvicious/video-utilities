@@ -117,9 +117,9 @@ class TreeTraverser:
         space = 0
         while True:
             for top, dirs, files in os.walk(root):
-                top_path = Path(top)
-                if top_path.name in self.directories_to_skip:
-                    continue
+                for skip in self.directories_to_skip:
+                    if skip in dirs:
+                        dirs.remove(skip)
                 for file in files:
                     video = os.path.join(top, file)
                     path = Path(video)
@@ -146,7 +146,7 @@ class TreeTraverser:
                 self.file_set.remove(video)
                 self.converter.convert_video(video, dest)
 
-        print ("Done.")
+        print("Done.")
 
 
 
