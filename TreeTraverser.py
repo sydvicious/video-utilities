@@ -88,8 +88,11 @@ class TreeTraverser:
                     new_hour = 0
             new_time = datetime.time(new_hour, new_minute, now.second)
             print("[" + str(now) + "] Waiting; will check again at " + str(new_time))
-            space, name, _ = self.file_queue.queue[0]
-            print(f'Next entry: {name} ({self.size_string(space)})')
+            if self.file_queue.qsize() == 0:
+                print('Queue currently empty.')
+            else:
+                space, name, _ = self.file_queue.queue[0]
+                print(f'Next entry: {name} ({self.size_string(space)})')
             time.sleep(600)
             return False
 
@@ -137,16 +140,13 @@ class TreeTraverser:
 
             size_tag = self.size_string(space)
 
-            print(f'{count} files; {size_tag}')
-
             while not self.file_queue.empty():
                 if not self.wait_for_window():
                     break
+                print(f'{count} files; {size_tag}')
                 _, video, dest = self.file_queue.get()
                 self.file_set.remove(video)
                 self.converter.convert_video(video, dest)
-
-        print("Done.")
 
 
 
