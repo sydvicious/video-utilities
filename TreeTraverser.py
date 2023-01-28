@@ -76,7 +76,9 @@ class TreeTraverser:
             elif self.start_time < self.stop_time and self.start_time < now < self.stop_time:
                 return True
 
-            elif self.stop_time < self.start_time and self.stop_time < now < self.start_time:
+            elif self.stop_time < self.start_time \
+                    and (self.start_time < now < midnight_lower
+                         or midnight_upper < now < self.stop_time):
                 return True
 
             new_hour = now.hour
