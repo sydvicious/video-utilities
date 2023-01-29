@@ -44,6 +44,24 @@ class H265Converter:
         self.eprint(*args, **kwargs)
         sys.exit(1)
 
+    def size_string(self, size):
+        if size > 1024 * 1024 * 1024 * 1024:
+            num = size / (1024 * 1024 * 1024 * 1024)
+            unit = 'Tb'
+        elif size > 1024 * 1024 * 1024:
+            num = size / (1024 * 1024 * 1024)
+            unit = 'Gb'
+        elif size > 1024 * 1024:
+            num = size / (1024 * 1024)
+            unit = 'Mb'
+        elif size > 1024:
+            num = size / 1024
+            unit = 'Kb'
+        else:
+            num = size
+            unit = 'bytes'
+        return f'{num:.3f} {unit}'
+
     def tmp_name(self, video):
         if self.tmp_dir:
             time_str = strftime('%Y%m%d%H%M%S', localtime())
@@ -81,8 +99,10 @@ class H265Converter:
             self.error_output('Source ' + src + ' does not exist.')
             return
 
+        src_size = src_file.stat().st_size
+        print(f'Source = {src_file} - {self.size_string(src_size)}')
+
         src_path = src_file.parent
-        print(f'Source = {src_file}')
 
         if dest is None:
             dest_path = src_path
@@ -119,6 +139,7 @@ class H265Converter:
             output = subprocess.run(command, stderr=subprocess.DEVNULL, env=my_env)
             if output.returncode == 0:
                 dest_path.mkdir(parents=True, exist_ok=True)
+                print(f'Wrote {self.size_string(tmp_file.stat().st_size)}.')
                 if self.tmp_dir:
                     print(f"Moving {tmp_file} to {dest_file}.")
                     shutil.move(tmp_file.as_posix(), dest_file.as_posix())

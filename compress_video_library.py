@@ -4,7 +4,7 @@ import TreeTraverser
 import argparse
 
 parser = argparse.ArgumentParser(description="Convert video files to libx265 mp4 files using ffmpeg",
-                                 prog="covert_video",
+                                 prog="compress_video_library",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                  fromfile_prefix_chars='@')
 parser.add_argument('source', type=str,
@@ -56,6 +56,12 @@ parser.add_argument('--stop-time', '--end-time', '-^', type=str,
                     will span midnight, and a job will start after the end_time on one
                     day, and won't start after start_time on the next day.
                     ''')
+parser.add_argument('--stop-when-complete', '-x', action='store_true',
+                    help=
+                    '''
+                    Stop after one complete pass through the tree. This is not the default, as this is designed
+                    to be a file system watch dog.
+                    ''')
 parser.add_argument('--suffix', '-s', nargs=1, default='.h265.mp4',
                     help=
                     '''
@@ -70,5 +76,5 @@ parser.add_argument('--tmp-dir', '--tmp', '-t',
 args = parser.parse_args()
 
 traverser = TreeTraverser.TreeTraverser(args.suffix, args.overwrite, args.force, args.dry_run, args.tmp_dir,
-                                       args.preserve_source, args.start_time, args.stop_time)
+                                       args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete)
 traverser.traverse(args.source, args.destination)

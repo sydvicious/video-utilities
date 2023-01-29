@@ -15,7 +15,7 @@ class TreeTraverser:
 
     video_suffixes = ['.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
                     '.MP4', '.mpg']
-    directories_to_skip = ['tmp', '.grab']
+    directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary']
 
     suffix = ''
     overwrite = False
@@ -28,14 +28,16 @@ class TreeTraverser:
     converter = None
     start_time = None
     stop_time = None
+    stop_when_complete = False
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
-                 preserve_source=False, start_time=None, stop_time=None):
+                 preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False):
         self.suffix = suffix
         self.overwrite = overwrite
         self.force = force
         self.dry_run = dry_run
         self.preserve_source = preserve_source
+        self.stop_when_complete = stop_when_complete
         if tmp_dir:
             self.tmp_dir = Path(tmp_dir)
             self.tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -154,6 +156,10 @@ class TreeTraverser:
                 self.file_set.remove(video)
                 count -= 1
                 space -= size
+
+            if self.stop_when_complete:
+                break
+        print("Done.")
 
 
 
