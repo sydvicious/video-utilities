@@ -29,6 +29,7 @@ class TreeTraverser:
     start_time = None
     stop_time = None
     stop_when_complete = False
+    error_list = set()
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
                  preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False):
@@ -130,6 +131,8 @@ class TreeTraverser:
                 for file in files:
                     video = os.path.join(top, file)
                     path = Path(video)
+                    if path in self.error_list:
+                        continue
                     if not self.should_convert(path):
                         continue
                     subdir = Path(top).relative_to(root)
@@ -152,7 +155,8 @@ class TreeTraverser:
                 if not self.wait_for_window():
                     break
                 size, video, dest = self.file_queue.get()
-                self.converter.convert_video(video, dest)
+                if not self.converter.convert_video(video, dest):
+                    self.error_list.add(video)
                 self.file_set.remove(video)
                 count -= 1
                 space -= size

@@ -97,7 +97,7 @@ class H265Converter:
 
         if not src_file.exists():
             self.error_output('Source ' + src + ' does not exist.')
-            return
+            return False
 
         src_size = src_file.stat().st_size
         print(f'Source = {src_file} - {self.size_string(src_size)}')
@@ -124,7 +124,7 @@ class H265Converter:
 
         if self.overwrite_flag == '-n' and dest_file.exists():
             self.error_output(f'{dest_file} exists.')
-            return
+            return False
 
         log_file = tmp_path.joinpath(self.log_name)
         my_env = os.environ.copy()
@@ -151,7 +151,9 @@ class H265Converter:
                     tmp_file.unlink(missing_ok=True)
                     backup_logfile = tmp_file.parent.joinpath(src_file.name).with_suffix('.err')
                     shutil.copyfile(log_file.as_posix(), backup_logfile)
-                return
+                return False
+
+        return True
 
     def convert_videos(self, files, dest=None):
         for file in files:
