@@ -149,9 +149,11 @@ class TreeTraverser:
                 print(f'{count} files; {size_tag}')
                 if not self.wait_for_window():
                     break
-                _, video, dest = self.file_queue.get()
-                self.file_set.remove(video)
+                size, video, dest = self.file_queue.get()
                 self.converter.convert_video(video, dest)
+                self.file_set.remove(video)
+                count -= 1
+                space -= size
 
 
 
