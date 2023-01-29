@@ -30,15 +30,21 @@ class TreeTraverser:
     stop_time = None
     stop_when_complete = False
     error_list = set()
+    error_list_file = None
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
-                 preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False):
+                 preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False,
+                 error_list_file=None):
         self.suffix = suffix
         self.overwrite = overwrite
         self.force = force
         self.dry_run = dry_run
         self.preserve_source = preserve_source
         self.stop_when_complete = stop_when_complete
+        if error_list_file is not None:
+            self.error_list_file = Path(error_list_file)
+            if self.error_list_file.is_dir():
+                self.error_list_file = Path(self.error_list_file.joinpath('errors.list'))
         if tmp_dir:
             self.tmp_dir = Path(tmp_dir)
             self.tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -47,6 +53,22 @@ class TreeTraverser:
             self.start_time = datetime.datetime.strptime(start_time, '%H:%M:%S').time()
         if stop_time is not None:
             self.stop_time = datetime.datetime.strptime(stop_time, '%H:%M:%S').time()
+
+    def write_error(self, path):
+        if path not in self.error_list:
+            self.error_list.add(path)
+            if self.error_list_file is not None:
+                error_file = self.error_list_file.open('a')
+                error_file.write(f'{path}\n')
+                error_file.close()
+
+    def read_errors(self):
+        if self.error_list_file is not None and self.error_list_file.exists():
+            error_file = self.error_list_file.open('r')
+            files = error_file.readlines()
+            error_file.close()
+            for file in files:
+                self.error_list.add(file.strip())
 
     def should_convert(self, path):
         path_suffix = path.suffix
@@ -124,6 +146,7 @@ class TreeTraverser:
         count = 0
         space = 0
         while True:
+            self.read_errors()
             for top, dirs, files in os.walk(root):
                 for skip in self.directories_to_skip:
                     if skip in dirs:
@@ -131,7 +154,7 @@ class TreeTraverser:
                 for file in files:
                     video = os.path.join(top, file)
                     path = Path(video)
-                    if path in self.error_list:
+                    if video in self.error_list:
                         continue
                     if not self.should_convert(path):
                         continue
@@ -148,15 +171,15 @@ class TreeTraverser:
                         count += 1
                         space += size
 
-            size_tag = self.size_string(space)
 
             while not self.file_queue.empty():
+                size_tag = self.size_string(space)
                 print(f'{count} files; {size_tag}')
                 if not self.wait_for_window():
                     break
                 size, video, dest = self.file_queue.get()
                 if not self.converter.convert_video(video, dest):
-                    self.error_list.add(video)
+                    self.write_error(video)
                 self.file_set.remove(video)
                 count -= 1
                 space -= size

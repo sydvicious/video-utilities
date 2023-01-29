@@ -73,8 +73,15 @@ parser.add_argument('--tmp-dir', '--tmp', '-t',
                     Directory where the converted file will be created. After the conversion is done, the file will be
                     moved to the destination directory.
                     ''')
+parser.add_argument('--error-list-file', '-e',
+                    help=
+                    '''
+                    When specified, any files that can't be converted are added to this list, and at start up,
+                    this file is read, and any files listed won't be put into the queue.
+                    ''')
 args = parser.parse_args()
 
 traverser = TreeTraverser.TreeTraverser(args.suffix, args.overwrite, args.force, args.dry_run, args.tmp_dir,
-                                       args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete)
+                                       args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete,
+                                       args.error_list_file)
 traverser.traverse(args.source, args.destination)
