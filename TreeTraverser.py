@@ -145,6 +145,10 @@ class TreeTraverser:
         root = Path(source)
         count = 0
         space = 0
+        if dest:
+            dest_path = Path(dest)
+        else:
+            dest_path = root
         while True:
             self.read_errors()
             for top, dirs, files in os.walk(root):
@@ -159,10 +163,7 @@ class TreeTraverser:
                     if not self.should_convert(path):
                         continue
                     subdir = Path(top).relative_to(root)
-                    if dest:
-                        final_dest = os.path.join(dest, subdir)
-                    else:
-                        final_dest = os.path.join(top, subdir)
+                    final_dest = dest_path.joinpath(subdir)
                     if video not in self.file_set:
                         size = path.stat().st_size
                         print(f'{video} ({self.size_string(size)}) -> {final_dest}')
