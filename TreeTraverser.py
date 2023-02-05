@@ -71,7 +71,7 @@ class TreeTraverser:
                 self.error_list.add(file.strip())
 
     def should_convert(self, path):
-        path_suffix = path.suffix
+        path_suffix = path.suffix.lower()
         if not (path_suffix in self.video_suffixes):
             return False
         suffixes = ""
