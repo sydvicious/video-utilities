@@ -1,3 +1,9 @@
+"""
+
+Copyright © 2023 Syd Polk
+
+"""
+
 import datetime
 import os
 import queue

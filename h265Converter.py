@@ -1,9 +1,14 @@
+"""
+
+Copyright © 2023 Syd Polk
+
+"""
+
 import os
 import shutil
 import subprocess
 import sys
 
-from hashlib import md5
 from pathlib import Path
 from time import localtime, strftime
 
