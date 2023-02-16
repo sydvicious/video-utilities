@@ -7,6 +7,7 @@ Copyright © 2023 Syd Polk
 import datetime
 import os
 import queue
+import sys
 import time
 
 from pathlib import Path
@@ -155,6 +156,7 @@ class TreeTraverser:
             dest_path = Path(dest)
         else:
             dest_path = root
+        stop_file = Path("/tmp/stop")
         while True:
             self.read_errors()
             for top, dirs, files in os.walk(root):
@@ -180,6 +182,9 @@ class TreeTraverser:
 
 
             while not self.file_queue.empty():
+                if stop_file.exists():
+                    print(f'Stop file {stop_file} exists. Remove it and restart to continue.', file=sys.stderr)
+                    exit(1)
                 size_tag = self.size_string(space)
                 print(f'{count} files; {size_tag}')
                 if not self.wait_for_window():
@@ -190,6 +195,7 @@ class TreeTraverser:
                 self.file_set.remove(video)
                 count -= 1
                 space -= size
+                print("")
 
             if self.stop_when_complete:
                 break

@@ -4,10 +4,12 @@ Copyright © 2023 Syd Polk
 
 """
 
+import datetime
 import os
 import shutil
 import subprocess
 import sys
+import time
 
 from pathlib import Path
 from time import localtime, strftime
@@ -82,6 +84,34 @@ class H265Converter:
         """
         return Path(video.name).with_suffix(self.suffix)
 
+    def print_quantity_with_tag(self, quant, singular, plural):
+        print(f'{quant}', end="")
+        if quant == 1:
+            print(f' {singular}', end="")
+        else:
+            print(f' {plural}', end="")
+
+    def pretty_print_duration(self, duration):
+        hours = int(duration.seconds / 3600)
+        if hours > 0:
+            self.print_quantity_with_tag(hours, "hour", "hours")
+            duration -= datetime.timedelta(seconds=hours*3600)
+            seconds = int(round(duration.seconds))
+            if seconds > 0:
+                print(', ', end="")
+
+        minutes = int(duration.seconds / 60)
+        if minutes > 0:
+            self.print_quantity_with_tag(minutes, "minute", "minutes")
+            duration -= datetime.timedelta(seconds=minutes*60)
+            seconds = int(round(duration.seconds))
+            if seconds > 0:
+                print(', ', end="")
+
+        seconds = int(round(duration.seconds))
+        self.print_quantity_with_tag(seconds, "second", "seconds")
+        print('')
+
     def convert_video(self, src, dest=None):
         """
         Encodes video to h265.
@@ -138,10 +168,17 @@ class H265Converter:
         command = ['ffmpeg', self.overwrite_flag, '-report', '-i', src_file, '-c:v', 'libx265', tmp_file]
 
         if not self.dry_run:
+            start = datetime.datetime.now()
+
             tmp_path.mkdir(parents=True, exist_ok=True)
 
             print(f'Converting {src_file} to {tmp_file}...')
             output = subprocess.run(command, stderr=subprocess.DEVNULL, env=my_env)
+            duration = datetime.datetime.now() - start
+
+            print("Time: ", end="")
+            self.pretty_print_duration(duration)
+
             if output.returncode == 0:
                 dest_path.mkdir(parents=True, exist_ok=True)
                 print(f'Wrote {self.size_string(tmp_file.stat().st_size)}.')
