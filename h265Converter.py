@@ -158,8 +158,8 @@ class H265Converter:
         print(f'Dest = {dest_file}')
 
         if self.overwrite_flag == '-n' and dest_file.exists():
-            self.error_output(f'{dest_file} exists.')
-            return False
+            print(f'{datetime.datetime.now()}: {dest_file} exists.')
+            return True
 
         log_file = tmp_path.joinpath(self.log_name)
         my_env = os.environ.copy()
@@ -172,35 +172,35 @@ class H265Converter:
 
             tmp_path.mkdir(parents=True, exist_ok=True)
 
-            print(f'Converting {src_file} to {tmp_file}...')
+            print(f'{start}: Converting {src_file} to {tmp_file}...')
             output = subprocess.run(command, stderr=subprocess.DEVNULL, env=my_env)
-            duration = datetime.datetime.now() - start
-
-            print("Time: ", end="")
-            self.pretty_print_duration(duration)
+            end = datetime.datetime.now()
+            duration = end - start
 
             if output.returncode == 0:
                 dest_path.mkdir(parents=True, exist_ok=True)
-                print(f'Wrote {self.size_string(tmp_file.stat().st_size)}.')
+                print(f'{end}: Wrote {self.size_string(tmp_file.stat().st_size)}.')
                 if self.tmp_dir:
-                    print(f"Moving {tmp_file} to {dest_file}.")
+                    print(f"{datetime.datetime.now()}: Moving {tmp_file} to {dest_file}.")
                     shutil.move(tmp_file.as_posix(), dest_file.as_posix())
                 if not self.preserve_source:
                     src_file.unlink()
             else:
-                self.error_output(f'Problem converting {src_file} to {tmp_file}')
+                self.error_output(f'{end}: Problem converting {src_file} to {tmp_file}')
                 if self.tmp_dir is not None:
                     tmp_file.unlink(missing_ok=True)
                     backup_logfile = tmp_file.parent.joinpath(src_file.name).with_suffix('.err')
                     shutil.copyfile(log_file.as_posix(), backup_logfile)
                 return False
+            print(f"{datetime.datetime.now()}: Time: ", end="")
+            self.pretty_print_duration(duration)
 
         return True
 
     def convert_videos(self, files, dest=None):
         for file in files:
-            print(f'Converting {file}...')
+            print(f'{datetime.datetime.now()}: Converting {file}...')
 
             self.convert_video(file, dest)
 
-        print('Done.')
+        print('{datetime.datetime.now()}: Done.')
