@@ -38,16 +38,18 @@ class TreeTraverser:
     stop_when_complete = False
     error_list = set()
     error_list_file = None
+    refresh = 0
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
                  preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False,
-                 error_list_file=None):
+                 refresh=0,error_list_file=None):
         self.suffix = suffix
         self.overwrite = overwrite
         self.force = force
         self.dry_run = dry_run
         self.preserve_source = preserve_source
         self.stop_when_complete = stop_when_complete
+        self.refresh = refresh
         if error_list_file is not None:
             self.error_list_file = Path(error_list_file)
             if self.error_list_file.is_dir():
@@ -149,6 +151,7 @@ class TreeTraverser:
         return f'{num:.3f} {unit}'
 
     def traverse(self, source, dest=None):
+        start_time = datetime.datetime.now()
         root = Path(source)
         count = 0
         space = 0
@@ -197,6 +200,12 @@ class TreeTraverser:
                 count -= 1
                 space -= size
                 print("")
+                current_time = datetime.datetime.now()
+                duration = current_time - start_time
+                if duration.seconds > self.refresh:
+                    print('Rechecking files...')
+                    start_time = datetime.datetime.now()
+                    break
 
             if self.stop_when_complete:
                 break

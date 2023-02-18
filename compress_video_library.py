@@ -86,9 +86,16 @@ parser.add_argument('--error-list-file', '-e',
                     When specified, any files that can't be converted are added to this list, and at start up,
                     this file is read, and any files listed won't be put into the queue.
                     ''')
+parser.add_argument('--refresh', '-g', nargs=1, default=86400,
+                    help=
+                    '''
+                    Refresh file tree every specified interval in seconds. Default is 1 day. Setting this very low
+                    will cause a scan of the source after every single conversion. For a local drive, that's no big
+                    deal. For a network drive, you might not want to mess with that.
+                    ''')
 args = parser.parse_args()
 
 traverser = TreeTraverser.TreeTraverser(args.suffix, args.overwrite, args.force, args.dry_run, args.tmp_dir,
-                                       args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete,
-                                       args.error_list_file)
+                                        args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete,
+                                        args.refresh,args.error_list_file)
 traverser.traverse(args.source, args.destination)
