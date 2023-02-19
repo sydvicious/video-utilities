@@ -92,6 +92,10 @@ class H265Converter:
             print(f' {plural}', end="")
 
     def pretty_print_duration(self, duration):
+        if round(duration.seconds) == 0:
+            print('0 seconds')
+            return
+
         hours = int(duration.seconds / 3600)
         if hours > 0:
             self.print_quantity_with_tag(hours, "hour", "hours")
@@ -104,12 +108,15 @@ class H265Converter:
         if minutes > 0:
             self.print_quantity_with_tag(minutes, "minute", "minutes")
             duration -= datetime.timedelta(seconds=minutes*60)
-            seconds = int(round(duration.seconds))
-            if seconds > 0:
-                print(', ', end="")
 
         seconds = int(round(duration.seconds))
-        self.print_quantity_with_tag(seconds, "second", "seconds")
+        if (hours > 0) or (minutes > 0):
+            if seconds > 0:
+                print(', ', end="")
+                self.print_quantity_with_tag(seconds, "second", "seconds")
+        else:
+            self.print_quantity_with_tag(seconds, "second", "seconds")
+
         print('')
 
     def convert_video(self, src, dest=None):
@@ -159,6 +166,8 @@ class H265Converter:
 
         if self.overwrite_flag == '-n' and dest_file.exists():
             print(f'{datetime.datetime.now()}: {dest_file} exists.')
+            if not self.dry_run and not self.preserve_source:
+                src_file.unlink()
             return True
 
         log_file = tmp_path.joinpath(self.log_name)

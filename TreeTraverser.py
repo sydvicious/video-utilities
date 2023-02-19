@@ -183,7 +183,6 @@ class TreeTraverser:
                         count += 1
                         space += size
 
-
             while not self.file_queue.empty():
                 if stop_file.exists():
                     print(f'{datetime.datetime.now()}: Stop file {stop_file} exists. Remove it and restart to continue.', file=sys.stderr)
@@ -209,6 +208,7 @@ class TreeTraverser:
 
             if self.stop_when_complete:
                 break
+            time.sleep(600)
         print(f"{datetime.datetime.now()}: Done.")
 
 
