@@ -159,6 +159,7 @@ class TreeTraverser:
             dest_path = Path(dest)
         else:
             dest_path = root
+        rechecking = False
         stop_file = Path("/tmp/stop")
         while True:
             self.read_errors()
@@ -204,11 +205,14 @@ class TreeTraverser:
                 if duration.seconds > self.refresh:
                     print('Rechecking files...')
                     start_time = datetime.datetime.now()
+                    rechecking = True
                     break
 
             if self.stop_when_complete:
                 break
-            time.sleep(600)
+            if not rechecking:
+                time.sleep(600)
+                rechecking = False
         print(f"{datetime.datetime.now()}: Done.")
 
 
