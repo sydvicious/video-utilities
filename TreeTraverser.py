@@ -184,12 +184,14 @@ class TreeTraverser:
                         count += 1
                         space += size
 
+            print("")
             while not self.file_queue.empty():
                 if stop_file.exists():
                     print(f'{datetime.datetime.now()}: Stop file {stop_file} exists. Remove it and restart to continue.', file=sys.stderr)
                     exit(1)
                 size_tag = self.size_string(space)
                 print(f'{datetime.datetime.now()}: {count} files; {size_tag}')
+                print("")
                 if not self.wait_for_window():
                     break
                 size, video, dest = self.file_queue.get()
