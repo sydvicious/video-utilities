@@ -52,10 +52,13 @@ class TreeTraverser:
         self.dry_run = dry_run
         self.preserve_source = preserve_source
         self.stop_when_complete = stop_when_complete
+        print(refresh)
         if type(refresh) == "<class 'list'>":
             self.refresh = refresh[0]
         else:
             self.refresh = refresh
+        print(self.refresh)
+        sys.exit(0)
         if error_list_file is not None:
             self.error_list_file = Path(error_list_file)
             if self.error_list_file.is_dir():
