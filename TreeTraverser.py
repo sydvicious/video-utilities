@@ -203,6 +203,10 @@ class TreeTraverser:
                 if not self.wait_for_window():
                     break
                 size, video, dest = self.file_queue.get()
+                path = Path(video)
+                if path.stat().st_size > size:
+                    print(f'{video} has changed size since queue. Removing and letting the refresh put it back.')
+                    continue
                 if not self.converter.convert_video(video, dest):
                     self.write_error(video)
                     print("")
