@@ -7,6 +7,7 @@ Copyright © 2023 Syd Polk
 import datetime
 import os
 import queue
+import re
 import sys
 import time
 
@@ -23,6 +24,8 @@ class TreeTraverser:
     video_suffixes = ['.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
                     '.MP4', '.mpg', '.mov']
     directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary']
+    file_pattern_to_skip = '.*\\(copy.*\\)'
+    file_pattern_to_skip_re = re.compile(file_pattern_to_skip)
 
     suffix = ''
     overwrite = False
@@ -82,6 +85,8 @@ class TreeTraverser:
     def should_convert(self, path):
         path_suffix = path.suffix.lower()
         if not (path_suffix in self.video_suffixes):
+            return False
+        if self.file_pattern_to_skip_re.match(str(path)):
             return False
         suffixes = ""
         for suffix in reversed(path.suffixes):
@@ -202,13 +207,14 @@ class TreeTraverser:
                 count -= 1
                 space -= size
                 print("")
-                current_time = datetime.datetime.now()
-                duration = current_time - start_time
-                if duration.seconds > self.refresh:
-                    print('Rechecking files...')
-                    start_time = datetime.datetime.now()
-                    rechecking = True
-                    break
+                if self.refresh > 0:
+                    current_time = datetime.datetime.now()
+                    duration = current_time - start_time
+                    if duration.seconds > self.refresh:
+                        print('Rechecking files...')
+                        start_time = datetime.datetime.now()
+                        rechecking = True
+                        break
 
             if self.stop_when_complete:
                 break
