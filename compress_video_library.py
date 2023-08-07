@@ -10,6 +10,13 @@ Copyright © 2023 Syd Polk
 import TreeTraverser
 import argparse
 
+
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
+
 parser = argparse.ArgumentParser(description="Convert video files to libx265 mp4 files using ffmpeg",
                                  prog="compress_video_library",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -86,7 +93,7 @@ parser.add_argument('--error-list-file', '-e',
                     When specified, any files that can't be converted are added to this list, and at start up,
                     this file is read, and any files listed won't be put into the queue.
                     ''')
-parser.add_argument('--refresh', '-g', nargs=1, default=3600,
+parser.add_argument('--refresh', '-g', type=check_positive, nargs=1, default=3600,
                     help=
                     '''
                     Refresh file tree every specified interval in seconds. Default is 1 day. Setting this very low
