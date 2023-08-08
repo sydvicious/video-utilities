@@ -188,7 +188,7 @@ class TreeTraverser:
                         size = path.stat().st_size
                         print(f'{video} ({self.size_string(size)}) -> {final_dest}')
                         self.file_set.add(video)
-                        self.file_queue.put((size, video, final_dest))
+                        self.file_queue.put((size, video, final_dest, path.stat().st_mtime))
                         count += 1
                         space += size
 
@@ -202,10 +202,13 @@ class TreeTraverser:
                 print("")
                 if not self.wait_for_window():
                     break
-                size, video, dest = self.file_queue.get()
+                size, video, dest, mtime = self.file_queue.get()
                 path = Path(video)
                 if path.stat().st_size > size:
                     print(f'{video} has changed size since queue. Removing and letting the refresh put it back.')
+                    continue
+                if path.stat().st_mtime < mtime + 12 * 60 * 60:
+                    print(f'{video} is being processed too fast; need to let any recording finish. Removing and letting the refresh put it back.')
                     continue
                 if not self.converter.convert_video(video, dest):
                     self.write_error(video)
