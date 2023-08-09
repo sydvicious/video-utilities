@@ -204,14 +204,20 @@ class TreeTraverser:
                 if not self.wait_for_window():
                     break
                 size, video, dest, mtime = self.file_queue.get()
+
+                # See if the size of the file has changed since we looked at it last.
                 path = Path(video)
                 if path.stat().st_size > size:
                     print(f'{video} has changed size since queue. Removing and letting the refresh put it back.')
                     continue
-                threshold = mtime + 12 * 60 * 60
-                if path.stat().st_mtime > threshold:
+
+                # If the file was created the last 24 hours, let's just wait.
+                time_24_hours_ago = datetime.datetime.now(0) - datetime.timedelta(hours = 24)
+                time_of_file = datetime.fromtimestamp(path.stat().st_mtime)
+                if time_of_file > time_24_hours_ago:
                     print(f'{video} is being processed too fast; need to let any recording finish. Removing and letting the refresh put it back.')
                     continue
+
                 if not self.converter.convert_video(video, dest):
                     self.write_error(video)
                     print("")
