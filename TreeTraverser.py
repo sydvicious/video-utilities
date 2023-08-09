@@ -213,7 +213,7 @@ class TreeTraverser:
 
                 # If the file was created the last 24 hours, let's just wait.
                 time_24_hours_ago = datetime.datetime.now() - datetime.timedelta(hours = 24)
-                time_of_file = datetime.fromtimestamp(path.stat().st_mtime)
+                time_of_file = datetime.datetime.fromtimestamp(path.stat().st_mtime)
                 if time_of_file > time_24_hours_ago:
                     print(f'{video} is being processed too fast; need to let any recording finish. Removing and letting the refresh put it back.')
                     continue
