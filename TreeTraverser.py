@@ -214,7 +214,7 @@ class TreeTraverser:
                     if path.stat().st_size > size:
                         print(f'{video} has changed size since queue ({self.size_string(path.stat().st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
                     elif time_of_file > time_24_hours_ago:
-                        print(f'{video} is too new ({time_of_file}. Removing and letting the refresh put it back.')
+                        print(f'{video} is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
                     elif not self.converter.convert_video(video, dest):
                         self.write_error(video)
                         print("")
