@@ -101,7 +101,7 @@ parser.add_argument('--refresh', '-g', type=check_positive, nargs=1, default=360
                     will cause a scan of the source after every single conversion. For a local drive, that's no big
                     deal. For a network drive, you might not want to mess with that.
                     ''')
-parser.add_argument('--skip-newer', action='store_true', dest='skip_newer',
+parser.add_argument('--dont-skip-newer', action='store_false', dest='skip_newer',
                     help=
                     '''
                     If a file is less than 24 hours, skip it. This is so that if Plex is recording a file,
