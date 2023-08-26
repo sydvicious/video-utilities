@@ -38,6 +38,7 @@ class TreeTraverser:
     converter = None
     start_time = None
     stop_time = None
+    skip_newer = True
     stop_when_complete = False
     error_list = set()
     error_list_file = None
@@ -45,13 +46,14 @@ class TreeTraverser:
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
                  preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False,
-                 refresh=0,error_list_file=None):
+                 refresh=0,error_list_file=None, skip_newer=True):
         self.suffix = suffix
         self.overwrite = overwrite
         self.force = force
         self.dry_run = dry_run
         self.preserve_source = preserve_source
         self.stop_when_complete = stop_when_complete
+        self.skip_newer = skip_newer
         if str(type(refresh)) == "<class \'list\'>":
             self.refresh = refresh[0]
         else:
@@ -213,7 +215,7 @@ class TreeTraverser:
                 if path.is_file():
                     if path.stat().st_size > size:
                         print(f'{video} has changed size since queue ({self.size_string(path.stat().st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
-                    elif time_of_file > time_24_hours_ago:
+                    elif self.skip_newer and time_of_file > time_24_hours_ago:
                         print(f'{video} is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
                     elif not self.converter.convert_video(video, dest):
                         self.write_error(video)

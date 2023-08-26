@@ -17,6 +17,7 @@ def check_positive(value):
         raise argparse.ArgumentTypeError("%s is an invalid non-negative int value" % value)
     return ivalue
 
+
 parser = argparse.ArgumentParser(description="Convert video files to libx265 mp4 files using ffmpeg",
                                  prog="compress_video_library",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -100,9 +101,15 @@ parser.add_argument('--refresh', '-g', type=check_positive, nargs=1, default=360
                     will cause a scan of the source after every single conversion. For a local drive, that's no big
                     deal. For a network drive, you might not want to mess with that.
                     ''')
+parser.add_argument('--skip-newer', action='store_true', dest='skip_newer',
+                    help=
+                    '''
+                    If a file is less than 24 hours, skip it. This is so that if Plex is recording a file,
+                    we don't try to encode an incomplete recording.
+                    ''')
 args = parser.parse_args()
 
 traverser = TreeTraverser.TreeTraverser(args.suffix, args.overwrite, args.force, args.dry_run, args.tmp_dir,
                                         args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete,
-                                        args.refresh, args.error_list_file)
+                                        args.refresh, args.error_list_file, args.skip_newer)
 traverser.traverse(args.source, args.destination)
