@@ -169,9 +169,9 @@ class TreeTraverser:
             dest_path = Path(dest)
         else:
             dest_path = root
-        rechecking = False
+        rechecking = True
         stop_file = Path("/tmp/stop")
-        while True:
+        while rechecking:
             self.read_errors()
             for top, dirs, files in os.walk(root):
                 for skip in self.directories_to_skip:
@@ -216,31 +216,29 @@ class TreeTraverser:
                     if path.stat().st_size > size:
                         print(f'{video} has changed size since queue ({self.size_string(path.stat().st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
                     elif self.skip_newer and time_of_file > time_24_hours_ago:
-                        print(f'{video} is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
+                        print(f'{video} ({self.size_string(size)}) is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
                     elif not self.converter.convert_video(video, dest):
                         self.write_error(video)
                         print("")
                 else:
-                    print(f'{video} has disappeared.')
+                    print(f'{video} ({self.size_string(size)}) has disappeared.')
 
                 self.file_set.remove(video)
                 count -= 1
                 space -= size
                 print("")
-                if self.refresh > 0:
-                    current_time = datetime.datetime.now()
-                    duration = current_time - start_time
-                    if duration.seconds > self.refresh:
-                        print('Rechecking files...')
-                        start_time = datetime.datetime.now()
-                        rechecking = True
-                        break
 
-            if self.stop_when_complete:
-                break
-            if not rechecking:
-                time.sleep(600)
-                rechecking = False
+            if self.refresh > 0:
+                current_time = datetime.datetime.now()
+                next_time = current_time + datetime.timedelta(0, self.refresh)
+                print(f'Sleeping for {self.refresh} seconds until {next_time}.')
+                time.sleep(self.refresh)
+
+                print('Rechecking files...')
+                start_time = datetime.datetime.now()
+
+            rechecking = not self.stop_when_complete
+
         print(f"{datetime.datetime.now()}: Done.")
 
 
