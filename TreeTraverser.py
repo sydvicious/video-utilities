@@ -32,6 +32,7 @@ class TreeTraverser:
     force = False
     dry_run = False
     tmp_dir = None
+    flat_dest = False
     preserve_source = False
     file_queue = queue.PriorityQueue()
     file_set = set()
@@ -45,9 +46,10 @@ class TreeTraverser:
     refresh = 0
 
     def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
-                 preserve_source=False, start_time=None, stop_time=None, stop_when_complete=False,
-                 refresh=0,error_list_file=None, skip_newer=True):
+                 flat_dest = False, preserve_source=False, start_time=None, stop_time=None,
+                 stop_when_complete=False,refresh=0,error_list_file=None, skip_newer=True):
         self.suffix = suffix
+        self.flat_dest = flat_dest
         self.overwrite = overwrite
         self.force = force
         self.dry_run = dry_run
@@ -184,8 +186,11 @@ class TreeTraverser:
                         continue
                     if not self.should_convert(path):
                         continue
-                    subdir = Path(top).relative_to(root)
-                    final_dest = dest_path.joinpath(subdir)
+                    if self.flat_dest:
+                        final_path = dest_path
+                    else:
+                        subdir = Path(top).relative_to(root)
+                        final_dest = dest_path.joinpath(subdir)
                     if video not in self.file_set:
                         size = path.stat().st_size
                         mtime = path.stat().st_mtime

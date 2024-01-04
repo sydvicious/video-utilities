@@ -42,6 +42,12 @@ parser.add_argument('--dry-run', '-n', action='store_true',
                     '''
                     Generate the commands that would be executed, and output them to stdout, but do not execute them.
                     ''')
+parser.add_argument('--flat-dest', action='store_true',
+                    help=
+                    '''
+                    Don't recreate the directory structure of the source on the destination directory. This can clobber
+                    if there are multiple files in the source directory structure with the same name.
+                    ''')
 parser.add_argument('--overwrite', '-w', action='store_true',
                     help=
                     '''
@@ -110,6 +116,6 @@ parser.add_argument('--dont-skip-newer', action='store_false', dest='skip_newer'
 args = parser.parse_args()
 
 traverser = TreeTraverser.TreeTraverser(args.suffix, args.overwrite, args.force, args.dry_run, args.tmp_dir,
-                                        args.preserve_source, args.start_time, args.stop_time, args.stop_when_complete,
-                                        args.refresh, args.error_list_file, args.skip_newer)
+                                        args.flat_dest, args.preserve_source, args.start_time, args.stop_time,
+                                        args.stop_when_complete, args.refresh, args.error_list_file, args.skip_newer)
 traverser.traverse(args.source, args.destination)
