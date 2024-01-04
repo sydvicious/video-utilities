@@ -187,7 +187,7 @@ class TreeTraverser:
                     if not self.should_convert(path):
                         continue
                     if self.flat_dest:
-                        final_path = dest_path
+                        final_dest = dest_path
                     else:
                         subdir = Path(top).relative_to(root)
                         final_dest = dest_path.joinpath(subdir)
