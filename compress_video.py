@@ -69,7 +69,7 @@ parser.add_argument('--preserve-source', '-p', action='store_true',
                     '''
                     Don't delete source files after conversion.
                     ''')
-parser.add_argument('--suffix', '-s', nargs=1,default='.h265.mp4',
+parser.add_argument('--suffix', '-s', nargs=1,default='.v2.mp4',
                     help=
                     '''
                     Use this extension for the final file.

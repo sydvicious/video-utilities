@@ -25,7 +25,7 @@ class H265Converter:
     suffix = None
     log_nane = None
 
-    def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
+    def __init__(self, suffix='.v2.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
                  preserve_source=False):
         self.suffix = suffix
         if overwrite:
@@ -178,7 +178,7 @@ class H265Converter:
         my_env = os.environ.copy()
         my_env["FFREPORT"] = f'file={log_file}:level=32'
 
-        command = ['ffmpeg', self.overwrite_flag, '-report', '-i', src_file, '-c:v', 'libx265', tmp_file]
+        command = ['ffmpeg', self.overwrite_flag, '-report', '-i', src_file, '-c:v', 'libx265', '-c:a', 'aac', '-tag:v', 'hvc1', tmp_file]
 
         if not self.dry_run:
             start = datetime.datetime.now()

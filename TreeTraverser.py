@@ -21,9 +21,9 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 
 class TreeTraverser:
 
-    video_suffixes = ['.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
-                    '.MP4', '.mpg', '.mov']
-    directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive']
+    video_suffixes = ['h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
+                    '.MP4', '.mpg', '.mov', '.MOV']
+    directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw']
     file_pattern_to_skip = '.*\\(copy.*\\)'
     file_pattern_to_skip_re = re.compile(file_pattern_to_skip)
 
@@ -45,7 +45,7 @@ class TreeTraverser:
     error_list_file = None
     refresh = 0
 
-    def __init__(self, suffix='.h265.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
+    def __init__(self, suffix='.v2.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
                  flat_dest = False, preserve_source=False, start_time=None, stop_time=None,
                  stop_when_complete=False,refresh=0,error_list_file=None, skip_newer=True):
         self.suffix = suffix

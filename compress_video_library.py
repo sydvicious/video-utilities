@@ -83,7 +83,7 @@ parser.add_argument('--stop-when-complete', '-x', action='store_true',
                     Stop after one complete pass through the tree. This is not the default, as this is designed
                     to be a file system watch dog.
                     ''')
-parser.add_argument('--suffix', '-s', nargs=1, default='.h265.mp4',
+parser.add_argument('--suffix', '-s', nargs=1, default='.v2.mp4',
                     help=
                     '''
                     Use this extension for the final file.
