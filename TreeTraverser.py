@@ -21,7 +21,7 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 
 class TreeTraverser:
 
-    video_suffixes = ['h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
+    video_suffixes = ['.h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
                     '.MP4', '.mpg', '.mov', '.MOV', '.3gp']
     directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw']
     file_pattern_to_skip = '.*\\(copy.*\\)'

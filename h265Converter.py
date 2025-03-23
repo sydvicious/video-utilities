@@ -9,7 +9,6 @@ import os
 import shutil
 import subprocess
 import sys
-import time
 
 from pathlib import Path
 from time import localtime, strftime
@@ -82,7 +81,13 @@ class H265Converter:
         :param video: a Path object to the existing video file
         :return: Returns a path object with the proposed name of the file after conversion.
         """
-        return Path(video.name).with_suffix(self.suffix)
+        name = video.name
+        stem = video.stem
+        while name != stem:
+            name = stem
+            stem = os.path.splitext(name)[0]
+        path = video.with_name(stem)
+        return Path(path).with_suffix(self.suffix)
 
     def print_quantity_with_tag(self, quant, singular, plural):
         print(f'{quant}', end="")
