@@ -76,7 +76,7 @@ class H265Converter:
             return tmp_name
         return video.name
 
-    def new_video_name(self, video):
+    def new_video_name(self, video, dest_path):
         """
         :param video: a Path object to the existing video file
         :return: Returns a path object with the proposed name of the file after conversion.
@@ -86,8 +86,8 @@ class H265Converter:
         while name != stem:
             name = stem
             stem = os.path.splitext(name)[0]
-        path = video.with_name(stem)
-        return Path(path).with_suffix(self.suffix)
+        name = Path(name).with_suffix(self.suffix)
+        return dest_path.joinpath(name)
 
     def print_quantity_with_tag(self, quant, singular, plural):
         print(f'{quant}', end="")
@@ -169,7 +169,7 @@ class H265Converter:
         tmp_file = tmp_path.joinpath(tmp_file_name)
         print(f'Temp = {tmp_file}')
 
-        dest_file_name = self.new_video_name(src_file)
+        dest_file_name = self.new_video_name(src_file, dest_path)
         dest_file = dest_path.joinpath(dest_file_name)
         print(f'Dest = {dest_file}')
 
