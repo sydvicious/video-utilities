@@ -23,7 +23,7 @@ class TreeTraverser:
 
     video_suffixes = ['.h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
                     '.MP4', '.mpg', '.mov', '.MOV', '.3gp', '.h265']
-    directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw']
+    directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw', 'Logs']
     file_pattern_to_skip = '.*\\(copy.*\\)'
     file_pattern_to_skip_re = re.compile(file_pattern_to_skip)
 
