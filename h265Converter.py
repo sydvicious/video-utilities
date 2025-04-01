@@ -23,10 +23,12 @@ class H265Converter:
     preserve_source = False
     suffix = None
     log_nane = None
+    video_suffixes = []
 
     def __init__(self, suffix='.v2.mp4', overwrite=False, force=False, dry_run=False, tmp_dir=None,
-                 preserve_source=False):
+                 preserve_source=False, video_suffixes=[]):
         self.suffix = suffix
+        self.video_suffixes = video_suffixes
         if overwrite:
             self.overwrite_flag = '-y'
         else:
@@ -83,9 +85,16 @@ class H265Converter:
         """
         name = video.name
         stem = video.stem
-        while name != stem:
-            name = stem
-            stem = os.path.splitext(name)[0]
+        extension = video.suffix
+        while extension in self.video_suffixes and name != stem:
+            newname = stem
+            newstem = os.path.splitext(newname)[0]
+            extension = os.path.splitext(newname)[1]
+            if not (extension in self.video_suffixes):
+                break
+            name = newname
+            stem = newstem
+
         name = Path(name).with_suffix(self.suffix)
         return dest_path.joinpath(name)
 

@@ -22,7 +22,7 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 class TreeTraverser:
 
     video_suffixes = ['.h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
-                    '.MP4', '.mpg', '.mov', '.MOV', '.3gp']
+                    '.MP4', '.mpg', '.mov', '.MOV', '.3gp', '.h265']
     directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw']
     file_pattern_to_skip = '.*\\(copy.*\\)'
     file_pattern_to_skip_re = re.compile(file_pattern_to_skip)
@@ -67,7 +67,7 @@ class TreeTraverser:
         if tmp_dir:
             self.tmp_dir = Path(tmp_dir)
             self.tmp_dir.mkdir(parents=True, exist_ok=True)
-        self.converter = h265Converter.H265Converter(suffix, overwrite, force, dry_run, tmp_dir, preserve_source)
+        self.converter = h265Converter.H265Converter(suffix, overwrite, force, dry_run, tmp_dir, preserve_source, self.video_suffixes)
         if start_time is not None:
             self.start_time = datetime.datetime.strptime(start_time, '%H:%M:%S').time()
         if stop_time is not None:
