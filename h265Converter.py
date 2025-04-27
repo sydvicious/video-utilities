@@ -166,7 +166,7 @@ class H265Converter:
             dest_path = Path(dest)
 
         if not dest_path.exists():
-            self.error_output('Dest Path ' + dest_path + ' does not exist.')
+            self.error_output('Dest Path ' + str(dest_path) + ' does not exist.')
             return False
 
         if self.tmp_dir is None:
