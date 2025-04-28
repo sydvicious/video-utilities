@@ -162,8 +162,10 @@ class H265Converter:
 
         if dest is None:
             dest_path = src_path
+            dest_file = dest_path.joinpath(dest)
         else:
-            dest_path = Path(dest)
+            dest_file = Path(dest)
+            dest_path = dest_file.parent
 
         if not dest_path.exists():
             self.error_output('Dest Path ' + str(dest_path) + ' does not exist.')
@@ -178,8 +180,6 @@ class H265Converter:
         tmp_file = tmp_path.joinpath(tmp_file_name)
         print(f'Temp = {tmp_file}')
 
-        dest_file_name = self.new_video_name(src_file, dest_path)
-        dest_file = dest_path.joinpath(dest_file_name)
         print(f'Dest = {dest_file}')
 
         if self.overwrite_flag == '-n' and dest_file.exists():

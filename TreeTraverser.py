@@ -107,7 +107,7 @@ class TreeTraverser:
             return True
 
         while True:
-            now = datetime.datetime.now().time()
+            now = datetime.datetime.now()
             # Check if current time is later than start_time
             if self.start_time is not None and self.stop_time is None:
                 if now > self.start_time:
@@ -163,7 +163,7 @@ class TreeTraverser:
         return f'{num:.3f} {unit}'
 
     def traverse(self, source, dest=None):
-        start_time = datetime.datetime.now()
+        self.start_time = datetime.datetime.now()
         root = Path(source)
         count = 0
         space = 0
@@ -191,12 +191,13 @@ class TreeTraverser:
                     else:
                         subdir = Path(top).relative_to(root)
                         final_dest = dest_path.joinpath(subdir)
-                    if video not in self.file_set:
+                    new_path_with_name = self.converter.new_video_name(Path(video), final_dest)
+                    if video not in self.file_set and not new_path_with_name.exists():
                         size = path.stat().st_size
                         mtime = path.stat().st_mtime
                         print(f'{video} ({self.size_string(size)}) -> {final_dest}')
                         self.file_set.add(video)
-                        self.file_queue.put((size, video, final_dest, mtime))
+                        self.file_queue.put((size, video, str(new_path_with_name), mtime))
                         count += 1
                         space += size
 
@@ -210,7 +211,7 @@ class TreeTraverser:
                 print("")
                 if not self.wait_for_window():
                     break
-                size, video, dest, mtime = self.file_queue.get()
+                size, video, dest_video, mtime = self.file_queue.get()
 
                 # See if the size of the file has changed since we looked at it last.
                 path = Path(video)
@@ -222,7 +223,7 @@ class TreeTraverser:
                         print(f'{video} has changed size since queue ({self.size_string(path.stat().st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
                     elif self.skip_newer and time_of_file > time_24_hours_ago:
                         print(f'{video} ({self.size_string(size)}) is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
-                    elif not self.converter.convert_video(video, dest):
+                    elif not self.converter.convert_video(video, dest_video):
                         self.write_error(video)
                         print("")
                 else:
@@ -240,7 +241,7 @@ class TreeTraverser:
                 time.sleep(self.refresh)
 
                 print('Rechecking files...')
-                start_time = datetime.datetime.now()
+                self.start_time = datetime.datetime.now()
 
             rechecking = not self.stop_when_complete
 
