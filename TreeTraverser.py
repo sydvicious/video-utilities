@@ -96,8 +96,8 @@ class TreeTraverser:
         if self.file_pattern_to_skip_re.match(str(path)):
             return False
         suffixes = ""
-        for suffix in reversed(path.suffixes):
-            suffixes = suffix + suffixes
+        for partial_suffix in reversed(path.suffixes):
+            suffixes = partial_suffix + suffixes
             if suffixes == self.suffix:
                 return False
         return True
@@ -201,6 +201,10 @@ class TreeTraverser:
                         self.file_queue.put((size, video, str(new_path_with_name), mtime))
                         count += 1
                         space += size
+                    else:
+                        if not self.preserve_source:
+                            print(f'Removing {video}; target {new_path_with_name} exists.')
+                            Path(video).unlink()
 
             print("")
             while not self.file_queue.empty():
