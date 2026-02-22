@@ -308,7 +308,6 @@ class H265Converter:
         # dest_file - PosixPath to final file.
 
         src_file = Path(src)
-        print(f'{datetime.datetime.now()}: [h265Converter build 2026-02-21-skip-h265mp4] convert_video={Path(__file__).resolve()} src={src_file}')
         if str(src_file).lower().endswith('.h265.mp4'):
             print(f'{datetime.datetime.now()}: Skipping prior converted file {src_file}.')
             return True
