@@ -225,18 +225,19 @@ class TreeTraverser:
                 # See if the size of the file has changed since we looked at it last.
                 path = Path(video)
                 time_24_hours_ago = datetime.datetime.now() - datetime.timedelta(hours = 24)
-                time_of_file = datetime.datetime.fromtimestamp(path.stat().st_mtime)
-
-                if path.is_file():
-                    if path.stat().st_size > size:
-                        print(f'{video} has changed size since queue ({self.size_string(path.stat().st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
+                try:
+                    current_stat = path.stat()
+                except FileNotFoundError:
+                    print(f'{video} ({self.size_string(size)}) has disappeared.')
+                else:
+                    time_of_file = datetime.datetime.fromtimestamp(current_stat.st_mtime)
+                    if current_stat.st_size > size:
+                        print(f'{video} has changed size since queue ({self.size_string(current_stat.st_size)} vs {self.size_string(size)}). Removing and letting the refresh put it back.')
                     elif self.skip_newer and time_of_file > time_24_hours_ago:
                         print(f'{video} ({self.size_string(size)}) is too new ({datetime.datetime.strftime(time_of_file, "%Y-%m-%d %H:%M:%S")}). Removing and letting the refresh put it back.')
                     elif not self.converter.convert_video(video, dest_video):
                         self.write_error(video)
                         print("")
-                else:
-                    print(f'{video} ({self.size_string(size)}) has disappeared.')
 
                 self.file_set.remove(video)
                 count -= 1
@@ -255,5 +256,4 @@ class TreeTraverser:
             rechecking = not self.stop_when_complete
 
         print(f"{datetime.datetime.now()}: Done.")
-
 
