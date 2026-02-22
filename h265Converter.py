@@ -308,6 +308,9 @@ class H265Converter:
         # dest_file - PosixPath to final file.
 
         src_file = Path(src)
+        if str(src_file).lower().endswith('.h265.mp4'):
+            print(f'{datetime.datetime.now()}: Skipping prior converted file {src_file}.')
+            return True
 
         if not src_file.exists():
             self.error_output('Source ' + src + ' does not exist.')

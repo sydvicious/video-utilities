@@ -90,6 +90,9 @@ class TreeTraverser:
                 self.error_list.add(file.strip())
 
     def should_convert(self, path):
+        # Skip prior-generation converted outputs.
+        if str(path).lower().endswith('.h265.mp4'):
+            return False
         path_suffix = path.suffix.lower()
         if not (path_suffix in self.video_suffixes):
             return False
@@ -251,7 +254,6 @@ class TreeTraverser:
             rechecking = not self.stop_when_complete
 
         print(f"{datetime.datetime.now()}: Done.")
-
 
 
 
