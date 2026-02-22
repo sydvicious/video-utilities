@@ -90,7 +90,11 @@ class TreeTraverser:
                 self.error_list.add(file.strip())
 
     def should_convert(self, path):
+<<<<<<< Updated upstream
         # Skip prior-generation converted outputs.
+=======
+        # These are already prior-generation converted outputs; skip reprocessing.
+>>>>>>> Stashed changes
         if str(path).lower().endswith('.h265.mp4'):
             return False
         path_suffix = path.suffix.lower()
