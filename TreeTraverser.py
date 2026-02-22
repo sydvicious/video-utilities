@@ -21,8 +21,9 @@ midnight_upper = datetime.datetime.strptime("23:59:59", '%H:%M:%S').time()
 
 class TreeTraverser:
 
-    video_suffixes = ['.h265.mp4', '.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
+    video_suffixes = ['.mp4', '.mkv', '.webm', '.avi', '.ts', '.m4v',
                     '.MP4', '.mpg', '.mov', '.MOV', '.3gp', '.h265', '.srt']
+    ignored_suffixes = ['.h265.mp4']
     directories_to_skip = ['tmp', '.grab', 'Photos Library.photoslibrary', 'Archive', 'Ripped', 'Music', 'Recordings - raw', 'Logs', 'Vault', 'Staging']
     file_pattern_to_skip = '.*\\(copy.*\\)'
     file_pattern_to_skip_re = re.compile(file_pattern_to_skip)
@@ -90,12 +91,8 @@ class TreeTraverser:
                 self.error_list.add(file.strip())
 
     def should_convert(self, path):
-<<<<<<< Updated upstream
-        # Skip prior-generation converted outputs.
-=======
-        # These are already prior-generation converted outputs; skip reprocessing.
->>>>>>> Stashed changes
-        if str(path).lower().endswith('.h265.mp4'):
+        # Skip extensions that are explicitly marked as non-convertible.
+        if str(path).lower().endswith(tuple(self.ignored_suffixes)):
             return False
         path_suffix = path.suffix.lower()
         if not (path_suffix in self.video_suffixes):
@@ -258,7 +255,5 @@ class TreeTraverser:
             rechecking = not self.stop_when_complete
 
         print(f"{datetime.datetime.now()}: Done.")
-
-
 
 
