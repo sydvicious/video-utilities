@@ -116,10 +116,14 @@ class H265Converter:
         audio_layout = self.detect_audio_layout(src_file.as_posix())
         command = ['ffmpeg', self.overwrite_flag, '-report']
         command.extend(input_options)
-        command.extend(['-i', src_file, '-c:v', 'libx265', '-c:a', 'aac'])
+        command.extend(['-i', src_file, '-map', '0:v:0', '-map', '0:a:0?', '-sn', '-dn'])
+        if self.is_transport_stream(src_file):
+            # Keep a stable filter graph for noisy TS inputs by dropping changed-parameter frames.
+            command.extend(['-reinit_filter', '0', '-drop_changed', '1'])
+        command.extend(['-c:v', 'libx265', '-pix_fmt', 'yuv420p', '-c:a', 'aac'])
         if audio_layout is not None:
             command.extend(['-channel_layout', audio_layout])
-        command.extend(['-tag:v', 'hvc1', tmp_file])
+        command.extend(['-avoid_negative_ts', 'make_zero', '-tag:v', 'hvc1', tmp_file])
         return command
 
     def build_input_options(self, src_file, force_ts_demux=False):
