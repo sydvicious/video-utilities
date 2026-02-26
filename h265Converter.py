@@ -140,7 +140,8 @@ class H265Converter:
         streams = probe_data.get('streams', [])
         return len(streams) > 0
 
-    def build_encode_command(self, src_file, tmp_file, force_ts_demux=False):
+    def build_encode_command(self, src_file, tmp_file, force_ts_demux=False,
+                             repair_audio_timestamps=False, disable_audio=False):
         input_options = self.build_input_options(src_file, force_ts_demux)
         audio_layout = self.detect_audio_layout(src_file.as_posix())
         has_video = self.has_video_stream(src_file.as_posix())
@@ -151,12 +152,18 @@ class H265Converter:
             command.extend(['-map', '0:v:0'])
         else:
             command.extend(['-vn'])
-        command.extend(['-map', '0:a:0?'])
+        if disable_audio:
+            command.extend(['-an'])
+        else:
+            command.extend(['-map', '0:a:0?'])
         if has_video:
             command.extend(['-c:v', 'libx265', '-pix_fmt', 'yuv420p'])
-        command.extend(['-c:a', 'aac'])
-        if audio_layout is not None:
-            command.extend(['-channel_layout', audio_layout])
+        if not disable_audio:
+            command.extend(['-c:a', 'aac'])
+            if repair_audio_timestamps:
+                command.extend(['-af', 'aresample=async=1:first_pts=0', '-ar', '48000'])
+            if audio_layout is not None:
+                command.extend(['-channel_layout', audio_layout])
         command.extend(['-avoid_negative_ts', 'make_zero', '-tag:v', 'hvc1', tmp_file])
         return command
 
@@ -221,6 +228,24 @@ class H265Converter:
             'End of file'
         ]
         for marker in unreadable_markers:
+            if marker in report:
+                return True
+        return False
+
+    def is_mp4_mux_timestamp_error(self, log_file):
+        if log_file is None or not log_file.exists():
+            return False
+        try:
+            report = log_file.read_text(errors='ignore')
+        except OSError:
+            return False
+
+        markers = [
+            'pts/dts pair unsupported',
+            'Error muxing a packet',
+            'Not yet implemented in FFmpeg, patches welcome'
+        ]
+        for marker in markers:
             if marker in report:
                 return True
         return False
@@ -433,6 +458,27 @@ class H265Converter:
                     salvage_command = self.build_encode_command(salvage_file, tmp_file)
                     print(f'{datetime.datetime.now()}: Retrying encode from salvage remux...')
                     output, log_file = self.run_ffmpeg(salvage_command, tmp_path, 'encode-salvage')
+            if output.returncode != 0 and self.is_mp4_mux_timestamp_error(log_file):
+                retry_src = salvage_file if salvage_file is not None else src_file
+                tmp_file.unlink(missing_ok=True)
+                print(f'{datetime.datetime.now()}: Retrying encode with audio timestamp repair...')
+                repair_command = self.build_encode_command(
+                    retry_src, tmp_file,
+                    force_ts_demux=self.is_transport_stream(retry_src),
+                    repair_audio_timestamps=True
+                )
+                output, log_file = self.run_ffmpeg(repair_command, tmp_path, 'encode-audio-repair')
+            if output.returncode != 0 and self.is_mp4_mux_timestamp_error(log_file):
+                retry_src = salvage_file if salvage_file is not None else src_file
+                if self.has_video_stream(retry_src.as_posix()):
+                    tmp_file.unlink(missing_ok=True)
+                    print(f'{datetime.datetime.now()}: Retrying encode as video-only due to persistent mux timestamp errors...')
+                    video_only_command = self.build_encode_command(
+                        retry_src, tmp_file,
+                        force_ts_demux=self.is_transport_stream(retry_src),
+                        disable_audio=True
+                    )
+                    output, log_file = self.run_ffmpeg(video_only_command, tmp_path, 'encode-video-only')
             end = datetime.datetime.now()
             duration = end - start
 
