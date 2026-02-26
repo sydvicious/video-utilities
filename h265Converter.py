@@ -77,6 +77,22 @@ class H265Converter:
         ])
         return subprocess.run(probe_command, capture_output=True, text=True)
 
+    def run_video_probe(self, src_file, force_ts_demux=False):
+        probe_command = ['ffprobe', '-v', 'error']
+        if force_ts_demux:
+            probe_command.extend([
+                '-f', 'mpegts',
+                '-analyzeduration', '100M',
+                '-probesize', '100M'
+            ])
+        probe_command.extend([
+            '-select_streams', 'v:0',
+            '-show_entries', 'stream=index',
+            '-of', 'json',
+            src_file
+        ])
+        return subprocess.run(probe_command, capture_output=True, text=True)
+
     def detect_audio_layout(self, src_file):
         """
         Determine the primary audio stream layout so AAC gets a valid channel layout.
@@ -111,16 +127,34 @@ class H265Converter:
 
         return None
 
+    def has_video_stream(self, src_file):
+        result = self.run_video_probe(src_file)
+        if result.returncode != 0 and Path(src_file).suffix.lower() in {'.ts', '.m2ts'}:
+            result = self.run_video_probe(src_file, force_ts_demux=True)
+        if result.returncode != 0:
+            return False
+        try:
+            probe_data = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return False
+        streams = probe_data.get('streams', [])
+        return len(streams) > 0
+
     def build_encode_command(self, src_file, tmp_file, force_ts_demux=False):
         input_options = self.build_input_options(src_file, force_ts_demux)
         audio_layout = self.detect_audio_layout(src_file.as_posix())
+        has_video = self.has_video_stream(src_file.as_posix())
         command = ['ffmpeg', self.overwrite_flag, '-report']
         command.extend(input_options)
-        command.extend(['-i', src_file, '-map', '0:v:0', '-map', '0:a:0?', '-sn', '-dn'])
-        if self.is_transport_stream(src_file):
-            # Keep a stable filter graph for noisy TS inputs by dropping changed-parameter frames.
-            command.extend(['-reinit_filter', '0', '-drop_changed', '1'])
-        command.extend(['-c:v', 'libx265', '-pix_fmt', 'yuv420p', '-c:a', 'aac'])
+        command.extend(['-i', src_file, '-sn', '-dn'])
+        if has_video:
+            command.extend(['-map', '0:v:0'])
+        else:
+            command.extend(['-vn'])
+        command.extend(['-map', '0:a:0?'])
+        if has_video:
+            command.extend(['-c:v', 'libx265', '-pix_fmt', 'yuv420p'])
+        command.extend(['-c:a', 'aac'])
         if audio_layout is not None:
             command.extend(['-channel_layout', audio_layout])
         command.extend(['-avoid_negative_ts', 'make_zero', '-tag:v', 'hvc1', tmp_file])
@@ -137,7 +171,10 @@ class H265Converter:
         input_options = [
             '-fflags', '+genpts+discardcorrupt',
             '-err_detect', 'ignore_err',
-            '-max_error_rate', '1'
+            '-max_error_rate', '1',
+            # Input-side options for TS decode/filtergraph stability.
+            '-reinit_filter', '0',
+            '-drop_changed', '1'
         ]
         if force_ts_demux:
             input_options.extend(['-f', 'mpegts'])
@@ -160,6 +197,28 @@ class H265Converter:
             'could not find codec parameters',
             'Could not detect TS packet size',
             'Invalid data found when processing input'
+        ]
+        for marker in unreadable_markers:
+            if marker in report:
+                return True
+        return False
+
+    def is_unreadable_input(self, log_file):
+        if log_file is None or not log_file.exists():
+            return False
+        try:
+            report = log_file.read_text(errors='ignore')
+        except OSError:
+            return False
+
+        unreadable_markers = [
+            'Error opening input file',
+            'Error opening input files:',
+            'Invalid data found when processing input',
+            'moov atom not found',
+            'could not find codec parameters',
+            'Could not detect TS packet size',
+            'End of file'
         ]
         for marker in unreadable_markers:
             if marker in report:
@@ -367,7 +426,7 @@ class H265Converter:
                 command = self.build_encode_command(src_file, tmp_file, force_ts_demux=True)
                 output, log_file = self.run_ffmpeg(command, tmp_path, 'encode-tsdemux')
             salvage_file = None
-            if output.returncode != 0:
+            if output.returncode != 0 and not self.is_unreadable_input(log_file):
                 salvage_file, log_file = self.try_salvage_remux(src_file, tmp_path)
                 if salvage_file is not None:
                     tmp_file.unlink(missing_ok=True)
