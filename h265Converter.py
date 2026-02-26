@@ -468,17 +468,6 @@ class H265Converter:
                     repair_audio_timestamps=True
                 )
                 output, log_file = self.run_ffmpeg(repair_command, tmp_path, 'encode-audio-repair')
-            if output.returncode != 0 and self.is_mp4_mux_timestamp_error(log_file):
-                retry_src = salvage_file if salvage_file is not None else src_file
-                if self.has_video_stream(retry_src.as_posix()):
-                    tmp_file.unlink(missing_ok=True)
-                    print(f'{datetime.datetime.now()}: Retrying encode as video-only due to persistent mux timestamp errors...')
-                    video_only_command = self.build_encode_command(
-                        retry_src, tmp_file,
-                        force_ts_demux=self.is_transport_stream(retry_src),
-                        disable_audio=True
-                    )
-                    output, log_file = self.run_ffmpeg(video_only_command, tmp_path, 'encode-video-only')
             end = datetime.datetime.now()
             duration = end - start
 
