@@ -496,9 +496,6 @@ class H265Converter:
                     tmp_file.unlink(missing_ok=True)
                     backup_logfile = tmp_file.parent.joinpath(src_file.name).with_suffix('.err')
                     shutil.copyfile(log_file.as_posix(), backup_logfile)
-                if self.is_transport_stream(src_file) and self.is_unreadable_transport_stream(log_file):
-                    print(f'{datetime.datetime.now()}: Removing unreadable transport stream {src_file}.')
-                    src_file.unlink(missing_ok=True)
                 if salvage_file is not None:
                     salvage_file.unlink(missing_ok=True)
                 return False
