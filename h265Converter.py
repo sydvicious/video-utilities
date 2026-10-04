@@ -485,7 +485,12 @@ class H265Converter:
                 print(f'{end}: Wrote {self.size_string(tmp_file.stat().st_size)}.')
                 if self.tmp_dir:
                     print(f"{datetime.datetime.now()}: Moving {tmp_file} to {dest_file}.")
-                    shutil.move(tmp_file.as_posix(), dest_file.as_posix())
+                    try:
+                        shutil.move(tmp_file.as_posix(), dest_file.as_posix())
+                    except OSError as e:
+                        print(f'{datetime.datetime.now()}: Move failed ({e}). Copying instead.')
+                        shutil.copy(tmp_file.as_posix(), dest_file.as_posix())
+                        tmp_file.unlink()
                 if not self.preserve_source:
                     src_file.unlink()
                 if salvage_file is not None:
