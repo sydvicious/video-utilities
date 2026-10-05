@@ -489,8 +489,19 @@ class H265Converter:
                         shutil.move(tmp_file.as_posix(), dest_file.as_posix())
                     except OSError as e:
                         print(f'{datetime.datetime.now()}: Move failed ({e}). Copying instead.')
-                        shutil.copy(tmp_file.as_posix(), dest_file.as_posix())
-                        tmp_file.unlink()
+                        try:
+                            shutil.copy(tmp_file.as_posix(), dest_file.as_posix())
+                        except OSError as e:
+                            self.eprint(f'{datetime.datetime.now()}: Copy failed ({e}). Leaving {tmp_file} in place.')
+                            # A partial dest would look like a finished encode on the next run.
+                            dest_file.unlink(missing_ok=True)
+                            if salvage_file is not None:
+                                salvage_file.unlink(missing_ok=True)
+                            return False
+                        try:
+                            tmp_file.unlink()
+                        except OSError as e:
+                            self.eprint(f'{datetime.datetime.now()}: Copied, but could not remove {tmp_file} ({e}).')
                 if not self.preserve_source:
                     src_file.unlink()
                 if salvage_file is not None:
